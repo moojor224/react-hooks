@@ -1,0 +1,30 @@
+{
+    "name": "@moojor224/react-hooks",
+    "private": false,
+    "version": "0.0.0",
+    "description": "Various react hooks",
+    "main": "dist/index.js",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.ts",
+    "author": {
+        "name": "moojor224",
+        "email": ""
+    },
+    "license": "ISC",
+    "repository": {
+        "type": "git",
+        "url": ""
+    },
+    "devDependencies": {
+        "tsup": "^8.3.6",
+        "typescript": "^5.7.3"
+    },
+    "scripts": {
+        "prepack": "tsup"
+    },
+    "dependencies": {
+        "@moojor224/promise-limiter": "^1.0.0",
+        "@types/react": "^19.2.14",
+        "react": "^19.2.4"
+    }
+}
