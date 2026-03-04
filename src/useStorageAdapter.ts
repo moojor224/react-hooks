@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useDBCacheAdapter } from "./useIndexedDB";
 
 type IDBConfig = {
@@ -132,13 +132,18 @@ function valueOrDefault<T>(val: T | null | undefined, def: T) {
  */
 export function useStoredValue<T>(key: string, initialValue: T) {
     const storageAdapter = useContext(StorageContext);
-    const [stateVal, setStateVal] = useState(() => {
-        const val = valueOrDefault(storageAdapter.getValue<T>(key), initialValue);
+    const [stateVal, setStateVal] = useState(valueOrDefault(storageAdapter.getValue(key), initialValue).value);
+    useEffect(() => {
+        if (!storageAdapter.ready) return;
+        const stored = storageAdapter.getValue(key);
+        const val = valueOrDefault(stored, initialValue);
         if (val.usedDefault) {
             storageAdapter.setValue(key, val.value);
         }
-        return val.value;
-    });
+        if (stored !== stateVal) {
+            setStateVal(storageAdapter.getValue(key));
+        }
+    }, [storageAdapter.ready]);
     /** keeps track of state */
     const state = useMemo(
         () => ({

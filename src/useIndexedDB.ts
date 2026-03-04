@@ -109,19 +109,22 @@ export function useDBCacheAdapter(dbName: string, storeName: string): StorageAda
             // queue database action
             limit.run(
                 () =>
-                    new Promise<void>(function (resolve) {
-                        const tr = database.database!.transaction(storeName, "readwrite");
-                        const store = tr.objectStore(storeName);
-                        const setReq = store.put(value, key);
-                        setReq.onsuccess = function () {
-                            setWorkSize((e) => e - 1);
-                            resolve();
-                        };
-                        setReq.onerror = function () {
-                            console.error(setReq.error);
-                            setWorkSize((e) => e - 1);
-                            resolve();
-                        };
+                    new Promise<void>(function queue(resolve) {
+                        const db = database.database;
+                        if (db) {
+                            const tr = db.transaction(storeName, "readwrite");
+                            const store = tr.objectStore(storeName);
+                            const setReq = store.put(value, key);
+                            setReq.onsuccess = function () {
+                                setWorkSize((e) => e - 1);
+                                resolve();
+                            };
+                            setReq.onerror = function () {
+                                console.error(setReq.error);
+                                setWorkSize((e) => e - 1);
+                                resolve();
+                            };
+                        }
                     })
             );
         },
@@ -131,19 +134,22 @@ export function useDBCacheAdapter(dbName: string, storeName: string): StorageAda
             // queue database action
             limit.run(
                 () =>
-                    new Promise<void>(function (resolve) {
-                        const tr = database.database!.transaction(storeName, "readwrite");
-                        const store = tr.objectStore(storeName);
-                        const delReq = store.delete(key);
-                        delReq.onsuccess = function () {
-                            setWorkSize((e) => e - 1);
-                            resolve();
-                        };
-                        delReq.onerror = function () {
-                            console.error(delReq.error);
-                            setWorkSize((e) => e - 1);
-                            resolve();
-                        };
+                    new Promise<void>(function queue(resolve) {
+                        const db = database.database;
+                        if (db) {
+                            const tr = db.transaction(storeName, "readwrite");
+                            const store = tr.objectStore(storeName);
+                            const delReq = store.delete(key);
+                            delReq.onsuccess = function () {
+                                setWorkSize((e) => e - 1);
+                                resolve();
+                            };
+                            delReq.onerror = function () {
+                                console.error(delReq.error);
+                                setWorkSize((e) => e - 1);
+                                resolve();
+                            };
+                        }
                     })
             );
         },
