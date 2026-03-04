@@ -12,7 +12,7 @@
     "license": "ISC",
     "repository": {
         "type": "git",
-        "url": ""
+        "url": "https://github.com/moojor224/react-hooks"
     },
     "devDependencies": {
         "tsup": "^8.3.6",
