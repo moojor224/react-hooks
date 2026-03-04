@@ -35,7 +35,8 @@ export type StorageAdapter = {
  * Options are locked in when useStorageAdapter is first called
  */
 export function useStorageAdapter(config: StorageConfig): StorageAdapter {
-    const type = config.type;
+    const type = config?.type;
+    // this useState ensures that the storage type is locked in the first time the hook is called
     const [adapterType] = useState(type);
     if (adapterType !== type) {
         console.warn("storage adapter type change from '%s' to '%s' detected. ignoring", adapterType, type);
@@ -79,6 +80,8 @@ export function useStorageAdapter(config: StorageConfig): StorageAdapter {
             const adapter = customConfig.adapter(props);
             return adapter;
         }
+        default:
+            console.warn("invalid storage adapter type: %o", type);
     }
     // fallback
     return localAdapter;

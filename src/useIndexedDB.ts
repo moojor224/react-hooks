@@ -1,6 +1,6 @@
 import { ConcurrencyLimiter } from "@moojor224/promise-limiter";
 import { useEffect, useMemo, useState } from "react";
-import type { StorageAdapter } from ".";
+import type { StorageAdapter } from "./useStorageAdapter";
 
 type DB =
     | {
