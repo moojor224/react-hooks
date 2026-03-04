@@ -65,7 +65,8 @@ export function useStorageAdapter(config: StorageConfig): StorageAdapter {
                             localStorage.removeItem(key);
                         },
                         getValue(key) {
-                            return JSON.parse(localStorage.getItem(key) ?? "undefined");
+                            // @ts-ignore
+                            return JSON.parse(localStorage.getItem(key));
                         },
                         keys() {
                             return new Array(localStorage.length).fill(0).map((_, i) => localStorage.key(i)!);
