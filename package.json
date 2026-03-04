@@ -1,14 +1,13 @@
 {
     "name": "@moojor224/react-hooks",
     "private": false,
-    "version": "0.0.0",
+    "version": "0.0.1",
     "description": "Various react hooks",
     "main": "dist/index.js",
     "module": "./dist/index.mjs",
     "types": "./dist/index.d.ts",
     "author": {
-        "name": "moojor224",
-        "email": ""
+        "name": "moojor224"
     },
     "license": "ISC",
     "repository": {
