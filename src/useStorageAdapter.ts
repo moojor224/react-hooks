@@ -23,9 +23,13 @@ export type StorageAdapter = {
     ready: boolean;
     /** true if the storage adapter had an error during initialization and can't be used */
     error: boolean;
+    /** get a value from the storage adapter. should return undefined if the value is not set */
     getValue<T>(key: string): T;
+    /** set a value in the storage adapter to the given value */
     setValue(key: string, value: any): void;
+    /** delete a value from the storage adapter */
     deleteValue(key: string): void;
+    /** get a list of all the keys stored in the storage adapter */
     keys(): string[];
 };
 
