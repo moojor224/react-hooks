@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useDBCacheAdapter } from "./useIndexedDB";
 
 type IDBConfig = {
@@ -113,6 +113,22 @@ const localAdapter: StorageAdapter = {
 
 /** Provides access to a {@link StorageAdapter} */
 export const StorageContext = createContext(localAdapter);
+export function StorageContextProvider({
+    children = null,
+    fallback = function () {
+        return "waiting for storage";
+    },
+    value,
+    wait = false
+}: {
+    value: StorageAdapter;
+    wait?: boolean;
+    fallback?: React.FunctionComponent;
+    children?: React.ReactNode;
+}) {
+    if (wait && !value.ready) return React.createElement(fallback);
+    return React.createElement(StorageContext, { value }, children);
+}
 
 function valueOrDefault<T>(val: T | null | undefined, def: T) {
     if (val === null || val === undefined) {
@@ -133,6 +149,8 @@ function valueOrDefault<T>(val: T | null | undefined, def: T) {
  */
 export function useStoredValue<T>(key: string, initialValue: T) {
     const storageAdapter = useContext(StorageContext);
+    //@ts-ignore
+    window.storageAdapter = storageAdapter;
     const [stateVal, setStateVal] = useState(valueOrDefault(storageAdapter.getValue(key), initialValue).value);
     useEffect(() => {
         if (!storageAdapter.ready) return;
@@ -142,28 +160,21 @@ export function useStoredValue<T>(key: string, initialValue: T) {
             storageAdapter.setValue(key, val.value);
         }
         if (stored !== stateVal) {
-            setStateVal(storageAdapter.getValue(key));
+            setValue(storageAdapter.getValue(key));
         }
     }, [storageAdapter.ready]);
     /** keeps track of state */
-    const state = useMemo(
-        () => ({
-            value: stateVal
-        }),
-        []
-    );
-    return [
-        state.value,
-        function (arg0: T | ((last: T) => T)) {
-            let v: T;
-            if (typeof arg0 == "function") {
-                v = (arg0 as (last: T) => T)(state.value);
-            } else {
-                v = arg0;
-            }
-            storageAdapter.setValue(key, v);
-            setStateVal(v);
-            state.value = v;
+    const state = useRef({ value: stateVal });
+    function setValue(arg0: T | ((last: T) => T)) {
+        let v: T;
+        if (typeof arg0 == "function") {
+            v = (arg0 as (last: T) => T)(state.current.value);
+        } else {
+            v = arg0;
         }
-    ] as const;
+        storageAdapter.setValue(key, v);
+        setStateVal(v);
+        state.current.value = v;
+    }
+    return [stateVal, setValue] as const;
 }
