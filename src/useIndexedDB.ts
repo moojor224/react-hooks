@@ -95,16 +95,16 @@ const limit = new ConcurrencyLimiter(1);
 export function useDBCacheAdapter(dbName: string, storeName: string): StorageAdapter {
     const database = useIndexedDB(dbName, storeName, 1);
     const cache = useDBCache(database.database, storeName);
-    const [workSize, setWorkSize] = useState(0);
+    const work = useMemo(() => ({ size: 0 }), []);
     return {
-        workSize,
+        work,
         ready: database.ready && cache.initialized,
         error: database.error || !!cache.error,
         getValue<T>(key: string): T {
             return cache.cache[key];
         },
         setValue(key: string, value: any) {
-            setWorkSize((e) => e + 1);
+            work.size++;
             cache.cache[key] = value;
             // queue database action
             limit.run(
@@ -116,12 +116,12 @@ export function useDBCacheAdapter(dbName: string, storeName: string): StorageAda
                             const store = tr.objectStore(storeName);
                             const setReq = store.put(value, key);
                             setReq.onsuccess = function () {
-                                setWorkSize((e) => e - 1);
+                                work.size--;
                                 resolve();
                             };
                             setReq.onerror = function () {
                                 console.error(setReq.error);
-                                setWorkSize((e) => e - 1);
+                                work.size--;
                                 resolve();
                             };
                         }
@@ -129,7 +129,7 @@ export function useDBCacheAdapter(dbName: string, storeName: string): StorageAda
             );
         },
         deleteValue(key: string) {
-            setWorkSize((e) => e + 1);
+            work.size++;
             delete cache.cache[key];
             // queue database action
             limit.run(
@@ -141,12 +141,12 @@ export function useDBCacheAdapter(dbName: string, storeName: string): StorageAda
                             const store = tr.objectStore(storeName);
                             const delReq = store.delete(key);
                             delReq.onsuccess = function () {
-                                setWorkSize((e) => e - 1);
+                                work.size--;
                                 resolve();
                             };
                             delReq.onerror = function () {
                                 console.error(delReq.error);
-                                setWorkSize((e) => e - 1);
+                                work.size--;
                                 resolve();
                             };
                         }

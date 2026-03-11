@@ -18,7 +18,7 @@ type StorageConfig = IDBConfig | LocalStorageConfig | CustomConfig;
 
 export type StorageAdapter = {
     /** size of the queue of pending storage operations */
-    workSize: number;
+    work: { size: number };
     /** whether the storage adapter is ready to use */
     ready: boolean;
     /** true if the storage adapter had an error during initialization and can't be used */
@@ -60,7 +60,7 @@ export function useStorageAdapter(config: StorageConfig): StorageAdapter {
                     ({
                         ready: true,
                         error: false,
-                        workSize: 0,
+                        work: { size: 0 },
                         deleteValue(key) {
                             localStorage.removeItem(key);
                         },
@@ -94,7 +94,7 @@ export function useStorageAdapter(config: StorageConfig): StorageAdapter {
 
 const localCache: Record<string, any> = {};
 const localAdapter: StorageAdapter = {
-    workSize: 0,
+    work: { size: 0 },
     ready: true,
     error: false,
     getValue<T>(key: string): T {
