@@ -1,0 +1,34 @@
+div.error-feed {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 5px;
+    overflow-y: clip;
+}
+div.error-feed > div.error-feed-item {
+    position: relative;
+    animation-duration: 1s;
+    animation-timing-function: linear;
+    animation-direction: normal;
+    margin-top: auto;
+    transition: all 0.25s ease-in-out;
+    transform: unset;
+    opacity: 1;
+    height: calc-size(fit-content, size);
+
+    &.fade-in {
+        overflow: clip;
+        transform: translateX(-100%);
+        opacity: 0;
+        height: 0px;
+    }
+
+    &.fade-out {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+}
