@@ -14,11 +14,28 @@ type DB =
           error: boolean;
       };
 
+const dbHistory: Record<
+    string,
+    {
+        db: IDBDatabase | null;
+        stores: Record<string, Record<string, any>>;
+    }
+> = {};
+
 /** sets up connection to IDB */
 function useIndexedDB(dbName: string, storeName: string, version: number): DB {
     const [db, setDB] = useState<IDBDatabase | null>(null);
     const [error, setError] = useState(false);
     useEffect(() => {
+        function checkHistory() {
+            if (dbName in dbHistory) {
+                const hist = dbHistory[dbName];
+                setDB(hist.db);
+                return true;
+            }
+            return false;
+        }
+        if (checkHistory()) return;
         // effect runs once on mount
         const request = indexedDB.open(dbName, version); // request open db
         request.onupgradeneeded = function () {
@@ -26,10 +43,20 @@ function useIndexedDB(dbName: string, storeName: string, version: number): DB {
             request.result.createObjectStore(storeName); // create app's object store
         };
         request.onsuccess = function () {
+            if (checkHistory()) return;
             setDB(request.result);
+            dbHistory[dbName] = {
+                db: request.result,
+                stores: {}
+            };
         };
         request.onerror = function () {
+            if (checkHistory()) return;
             setError(true);
+            dbHistory[dbName] = {
+                db: null,
+                stores: {}
+            };
         };
     }, []);
     return {
@@ -43,7 +70,7 @@ function useIndexedDB(dbName: string, storeName: string, version: number): DB {
 }
 
 /** downloads database into cache object for instant getValue */
-function useDBCache(db: IDBDatabase | null, storeName: string) {
+function useDBCache(db: IDBDatabase | null, dbName: string, storeName: string) {
     const [initialized, setInitialized] = useState(false);
     const [error, setError] = useState<Error | null>(null);
     const cache: Record<string, any> = useMemo(() => ({}), []);
@@ -94,7 +121,7 @@ const limit = new ConcurrencyLimiter(1);
 /** getters/setters for IDB cache */
 export function useDBCacheAdapter(dbName: string, storeName: string): StorageAdapter {
     const database = useIndexedDB(dbName, storeName, 1);
-    const cache = useDBCache(database.database, storeName);
+    const cache = useDBCache(database.database, dbName, storeName);
     const work = useMemo(() => ({ size: 0 }), []);
     return {
         work,
